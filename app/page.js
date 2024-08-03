@@ -35,8 +35,8 @@ export default function Home() {
   const [openSignInModal, setOpenSignInModal] = useState(false)
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState(1)
-  const [description, setDescription] = useState('') // New state for description
-  const [vendor, setVendor] = useState('') // New state for vendor name
+  const [description, setDescription] = useState('')
+  const [vendor, setVendor] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [minQuantity, setMinQuantity] = useState(0)
   const [currentItem, setCurrentItem] = useState(null)
@@ -61,8 +61,10 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    const filtered = inventory.filter(({ name, quantity }) =>
+    const filtered = inventory.filter(({ name, quantity, description, vendor }) =>
       name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      description.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      vendor.toLowerCase().includes(searchTerm.toLowerCase()) &&
       quantity >= minQuantity
     )
     setFilteredInventory(filtered)
@@ -90,8 +92,8 @@ export default function Home() {
     await updateInventory()
     setItemName('')
     setQuantity(1)
-    setDescription('') // Reset description
-    setVendor('') // Reset vendor
+    setDescription('')
+    setVendor('')
     handleCloseAdd()
   }
 
@@ -187,7 +189,6 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Sign Up Modal */}
       <Modal open={openSignUpModal} onClose={handleCloseSignUp} aria-labelledby="modal-sign-up-title" aria-describedby="modal-sign-up-description">
         <Box sx={modalStyle}>
           <Typography id="modal-sign-up-title" variant="h6" component="h2" color="#00796b">
@@ -203,7 +204,6 @@ export default function Home() {
         </Box>
       </Modal>
 
-      {/* Sign In Modal */}
       <Modal open={openSignInModal} onClose={handleCloseSignIn} aria-labelledby="modal-sign-in-title" aria-describedby="modal-sign-in-description">
         <Box sx={modalStyle}>
           <Typography id="modal-sign-in-title" variant="h6" component="h2" color="#00796b">
@@ -218,7 +218,6 @@ export default function Home() {
         </Box>
       </Modal>
 
-      {/* Add Item Modal */}
       <Modal open={openAddModal} onClose={handleCloseAdd} aria-labelledby="modal-add-item-title" aria-describedby="modal-add-item-description">
         <Box sx={modalStyle}>
           <Typography id="modal-add-item-title" variant="h6" component="h2" color="#00796b">
@@ -228,14 +227,13 @@ export default function Home() {
           <Stack spacing={2}>
             <TextField label="Item Name" variant="outlined" fullWidth value={itemName} onChange={(e) => setItemName(e.target.value)} />
             <TextField label="Quantity" type="number" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))} />
-            <TextField label="Description" variant="outlined" fullWidth value={description} onChange={(e) => setDescription(e.target.value)} /> {/* New description field */}
-            <TextField label="Vendor" variant="outlined" fullWidth value={vendor} onChange={(e) => setVendor(e.target.value)} /> {/* New vendor field */}
+            <TextField label="Description" variant="outlined" fullWidth value={description} onChange={(e) => setDescription(e.target.value)} />
+            <TextField label="Vendor" variant="outlined" fullWidth value={vendor} onChange={(e) => setVendor(e.target.value)} />
             <Button variant="contained" color="primary" sx={buttonStyle} onClick={addItem}>Add Item</Button>
           </Stack>
         </Box>
       </Modal>
 
-      {/* Edit Item Modal */}
       <Modal open={openEditModal} onClose={handleCloseEdit} aria-labelledby="modal-edit-item-title" aria-describedby="modal-edit-item-description">
         <Box sx={modalStyle}>
           <Typography id="modal-edit-item-title" variant="h6" component="h2" color="#00796b">
@@ -250,8 +248,7 @@ export default function Home() {
         </Box>
       </Modal>
 
-      {/* Inventory List */}
-      <Box display="flex" flexDirection="column" gap={2} width="100%">
+      <Box display="flex" flexDirection="column" gap={2} width="100%" flexGrow={1}>
         <Typography variant="h5" component="div" color="#00796b" sx={{ mb: 2 }}>
           Inventory Items
         </Typography>
@@ -260,7 +257,7 @@ export default function Home() {
           <TextField label="Min Quantity" type="number" variant="outlined" value={minQuantity} onChange={(e) => setMinQuantity(parseInt(e.target.value))} />
         </Stack>
 
-        <Box sx={{ maxHeight: '400px', overflowY: 'auto' }}>
+        <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
           {filteredInventory.map((item) => (
             <Card key={item.name} sx={{ mb: 2 }}>
               <CardContent>
@@ -271,10 +268,10 @@ export default function Home() {
                   Quantity: {item.quantity}
                 </Typography>
                 <Typography color="text.secondary">
-                  Description: {item.description} {/* Display description */}
+                  Description: {item.description}
                 </Typography>
                 <Typography color="text.secondary">
-                  Vendor: {item.vendor} {/* Display vendor */}
+                  Vendor: {item.vendor}
                 </Typography>
                 <Stack direction="row" spacing={2} mt={2}>
                   <Button variant="contained" color="primary" onClick={() => handleOpenEdit(item)}>Edit</Button>
@@ -284,6 +281,15 @@ export default function Home() {
             </Card>
           ))}
         </Box>
+      </Box>
+
+      <Box component="footer" sx={{ width: '100%', p: 2, mt: 'auto', bgcolor: '#00796b', color: '#ffffff', display: 'flex', justifyContent: 'space-between' }}>
+        <Typography variant="body2">
+          © {new Date().getFullYear()} Property of XYZ Company
+        </Typography>
+        <Typography variant="body2">
+          Name: John Doe | Phone: (123) 456-7890 | Address: 123 Main St, Anytown, USA
+        </Typography>
       </Box>
     </Box>
   )
