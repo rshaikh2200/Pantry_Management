@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Divider, AppBar, Toolbar } from '@mui/material'
 import { firestore, auth } from '@/firebase'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth'
 import { collection, doc, getDocs, query, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
 
 const modalStyle = {
@@ -153,21 +153,36 @@ export default function Home() {
     }
   }
 
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth)
+      alert('Sign Out Successful')
+    } catch (error) {
+      console.error('Error signing out:', error.message)
+      alert(error.message)
+    }
+  }
+
   return (
     <Box width="100vw" height="100vh" display="flex" flexDirection="column" alignItems="center" gap={3} p={3} bgcolor="#e0f7fa">
       <AppBar position="static">
         <Toolbar>
           {user ? (
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
-              Welcome, {user.displayName}
-            </Typography>
+            <>
+              <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                Welcome, {user.displayName}
+              </Typography>
+              <Button color="inherit" onClick={handleSignOut}>Logout</Button>
+            </>
           ) : (
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
-              Welcome
-            </Typography>
+            <>
+              <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                Welcome
+              </Typography>
+              <Button color="inherit" onClick={handleOpenSignUp}>Sign Up</Button>
+              <Button color="inherit" onClick={handleOpenSignIn}>Sign In</Button>
+            </>
           )}
-          <Button color="inherit" onClick={handleOpenSignUp}>Sign Up</Button>
-          <Button color="inherit" onClick={handleOpenSignIn}>Sign In</Button>
           <Button color="inherit" onClick={handleOpenAdd}>Add Item</Button>
         </Toolbar>
       </AppBar>
@@ -237,37 +252,39 @@ export default function Home() {
 
       {/* Inventory List */}
       <Box display="flex" flexDirection="column" gap={2} width="100%">
+        <Typography variant="h5" component="div" color="#00796b" sx={{ mb: 2 }}>
+          Inventory Items
+        </Typography>
         <Stack direction="row" spacing={2}>
           <TextField label="Search Item" variant="outlined" fullWidth value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           <TextField label="Min Quantity" type="number" variant="outlined" value={minQuantity} onChange={(e) => setMinQuantity(parseInt(e.target.value))} />
         </Stack>
 
-        {filteredInventory.map((item) => (
-          <Card key={item.name}>
-            <CardContent>
-              <Typography variant="h6" component="div">
-                {item.name}
-              </Typography>
-              <Typography color="text.secondary">
-                Quantity: {item.quantity}
-              </Typography>
-              <Typography color="text.secondary">
-                Description: {item.description} {/* Display description */}
-              </Typography>
-              <Typography color="text.secondary">
-                Vendor: {item.vendor} {/* Display vendor */}
-              </Typography>
-              <Stack direction="row" spacing={2} mt={2}>
-                <Button variant="contained" color="primary" onClick={() => handleOpenEdit(item)}>Edit</Button>
-                <Button variant="contained" color="secondary" onClick={() => removeItem(item.name)}>Remove</Button>
-              </Stack>
-            </CardContent>
-          </Card>
-        ))}
+        <Box sx={{ maxHeight: '400px', overflowY: 'auto' }}>
+          {filteredInventory.map((item) => (
+            <Card key={item.name} sx={{ mb: 2 }}>
+              <CardContent>
+                <Typography variant="h6" component="div">
+                  {item.name}
+                </Typography>
+                <Typography color="text.secondary">
+                  Quantity: {item.quantity}
+                </Typography>
+                <Typography color="text.secondary">
+                  Description: {item.description} {/* Display description */}
+                </Typography>
+                <Typography color="text.secondary">
+                  Vendor: {item.vendor} {/* Display vendor */}
+                </Typography>
+                <Stack direction="row" spacing={2} mt={2}>
+                  <Button variant="contained" color="primary" onClick={() => handleOpenEdit(item)}>Edit</Button>
+                  <Button variant="contained" color="secondary" onClick={() => removeItem(item.name)}>Remove</Button>
+                </Stack>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
       </Box>
     </Box>
   )
 }
-
-
-
