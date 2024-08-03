@@ -273,7 +273,7 @@ useEffect(() => {
         </Box>
       </Modal>
 
-      <Box display="flex" flexDirection="column" gap={2} width="100%" flexGrow={1} maxHeight="70vh" overflowY="auto">
+      <Box display="flex" flexDirection="column" gap={2} width="100%" flexGrow={1} maxHeight="100vh" overflowY="auto">
         <Typography variant="h5" component="div" color="#00796b" sx={{ mb: 2 }}>
           Inventory Items
         </Typography>
