@@ -46,14 +46,18 @@ export default function Home() {
   const [user, setUser] = useState(null)
 
   const updateInventory = async () => {
-    const snapshot = query(collection(firestore, 'inventory'))
-    const docs = await getDocs(snapshot)
-    const inventoryList = []
-    docs.forEach((doc) => {
-      inventoryList.push({ id: doc.id, ...doc.data() })
-    })
-    setInventory(inventoryList)
-    setFilteredInventory(inventoryList)
+    try {
+      const snapshot = query(collection(firestore, 'inventory'))
+      const docs = await getDocs(snapshot)
+      const inventoryList = []
+      docs.forEach((doc) => {
+        inventoryList.push({ id: doc.id, ...doc.data() })
+      })
+      setInventory(inventoryList)
+      setFilteredInventory(inventoryList)
+    } catch (error) {
+      console.error('Error updating inventory:', error.message)
+    }
   }
 
   useEffect(() => {
@@ -71,51 +75,65 @@ export default function Home() {
   }, [searchTerm, minQuantity, inventory])
 
   useEffect(() => {
-    onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser)
       } else {
         setUser(null)
       }
     })
+    return () => unsubscribe()
   }, [])
 
   const addItem = async () => {
-    const docRef = doc(collection(firestore, 'inventory'), itemName)
-    const docSnap = await getDoc(docRef)
-    if (docSnap.exists()) {
-      const { quantity: currentQuantity } = docSnap.data()
-      await setDoc(docRef, { quantity: currentQuantity + quantity, vendorName, itemDescription }, { merge: true })
-    } else {
-      await setDoc(docRef, { quantity, vendorName, itemDescription })
+    try {
+      const docRef = doc(collection(firestore, 'inventory'), itemName)
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        const { quantity: currentQuantity } = docSnap.data()
+        await setDoc(docRef, { quantity: currentQuantity + quantity, vendorName, itemDescription }, { merge: true })
+      } else {
+        await setDoc(docRef, { quantity, vendorName, itemDescription })
+      }
+      await updateInventory()
+      setItemName('')
+      setQuantity(1)
+      setVendorName('')
+      setItemDescription('')
+      handleCloseAdd()
+    } catch (error) {
+      console.error('Error adding item:', error.message)
     }
-    await updateInventory()
-    setItemName('')
-    setQuantity(1)
-    setVendorName('')
-    setItemDescription('')
-    handleCloseAdd()
   }
 
   const updateItem = async () => {
-    const docRef = doc(collection(firestore, 'inventory'), currentItem.name)
-    await setDoc(docRef, { quantity, vendorName: currentItem.vendorName, itemDescription: currentItem.itemDescription }, { merge: true })
-    await updateInventory()
-    setOpenEditModal(false)
+    if (!currentItem) return
+    try {
+      const docRef = doc(collection(firestore, 'inventory'), currentItem.name)
+      await setDoc(docRef, { quantity, vendorName: currentItem.vendorName, itemDescription: currentItem.itemDescription }, { merge: true })
+      await updateInventory()
+      setOpenEditModal(false)
+    } catch (error) {
+      console.error('Error updating item:', error.message)
+    }
   }
 
   const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item)
-    const docSnap = await getDoc(docRef)
-    if (docSnap.exists()) {
-      const { quantity } = docSnap.data()
-      if (quantity === 1) {
-        await deleteDoc(docRef)
-      } else {
-        await setDoc(docRef, { quantity: quantity - 1 }, { merge: true })
+    try {
+      const docRef = doc(collection(firestore, 'inventory'), item)
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        const { quantity } = docSnap.data()
+        if (quantity === 1) {
+          await deleteDoc(docRef)
+        } else {
+          await setDoc(docRef, { quantity: quantity - 1 }, { merge: true })
+        }
       }
+      await updateInventory()
+    } catch (error) {
+      console.error('Error removing item:', error.message)
     }
-    await updateInventory()
   }
 
   const handleOpenAdd = () => setOpenAddModal(true)
