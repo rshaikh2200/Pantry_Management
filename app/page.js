@@ -48,14 +48,18 @@ export default function Home() {
   const [user, setUser] = useState(null)
 
   const updateInventory = async () => {
-    const snapshot = query(collection(firestore, 'inventory'))
-    const docs = await getDocs(snapshot)
-    const inventoryList = []
-    docs.forEach((doc) => {
-      inventoryList.push({ name: doc.id, ...doc.data() })
-    })
-    setInventory(inventoryList)
-    setFilteredInventory(inventoryList)
+    try {
+      const snapshot = query(collection(firestore, 'inventory'))
+      const docs = await getDocs(snapshot)
+      const inventoryList = []
+      docs.forEach((doc) => {
+        inventoryList.push({ name: doc.id, ...doc.data() })
+      })
+      setInventory(inventoryList)
+      setFilteredInventory(inventoryList)
+    } catch (error) {
+      console.error('Error fetching inventory:', error.message)
+    }
   }
 
   useEffect(() => {
@@ -73,51 +77,64 @@ export default function Home() {
   }, [searchTerm, minQuantity, vendorFilter, descriptionFilter, inventory])
 
   useEffect(() => {
-    onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser)
       } else {
         setUser(null)
       }
     })
+    return () => unsubscribe()
   }, [])
 
   const addItem = async () => {
-    const docRef = doc(collection(firestore, 'inventory'), itemName)
-    const docSnap = await getDoc(docRef)
-    if (docSnap.exists()) {
-      const { quantity: currentQuantity } = docSnap.data()
-      await setDoc(docRef, { quantity: currentQuantity + quantity, description, vendor })
-    } else {
-      await setDoc(docRef, { quantity, description, vendor })
+    try {
+      const docRef = doc(collection(firestore, 'inventory'), itemName)
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        const { quantity: currentQuantity } = docSnap.data()
+        await setDoc(docRef, { quantity: currentQuantity + quantity, description, vendor })
+      } else {
+        await setDoc(docRef, { quantity, description, vendor })
+      }
+      await updateInventory()
+      setItemName('')
+      setQuantity(1)
+      setDescription('')
+      setVendor('')
+      handleCloseAdd()
+    } catch (error) {
+      console.error('Error adding item:', error.message)
     }
-    await updateInventory()
-    setItemName('')
-    setQuantity(1)
-    setDescription('')
-    setVendor('')
-    handleCloseAdd()
   }
 
   const updateItem = async () => {
-    const docRef = doc(collection(firestore, 'inventory'), currentItem.name)
-    await setDoc(docRef, { quantity })
-    await updateInventory()
-    setOpenEditModal(false)
+    try {
+      const docRef = doc(collection(firestore, 'inventory'), currentItem.name)
+      await setDoc(docRef, { quantity })
+      await updateInventory()
+      setOpenEditModal(false)
+    } catch (error) {
+      console.error('Error updating item:', error.message)
+    }
   }
 
   const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item)
-    const docSnap = await getDoc(docRef)
-    if (docSnap.exists()) {
-      const { quantity } = docSnap.data()
-      if (quantity === 1) {
-        await deleteDoc(docRef)
-      } else {
-        await setDoc(docRef, { quantity: quantity - 1 })
+    try {
+      const docRef = doc(collection(firestore, 'inventory'), item)
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        const { quantity } = docSnap.data()
+        if (quantity === 1) {
+          await deleteDoc(docRef)
+        } else {
+          await setDoc(docRef, { quantity: quantity - 1 })
+        }
       }
+      await updateInventory()
+    } catch (error) {
+      console.error('Error removing item:', error.message)
     }
-    await updateInventory()
   }
 
   const handleOpenAdd = () => setOpenAddModal(true)
@@ -199,8 +216,8 @@ export default function Home() {
           <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
           <Stack spacing={2}>
             <TextField label="Username" variant="outlined" fullWidth value={username} onChange={(e) => setUsername(e.target.value)} />
-            <TextField label="Email" variant="outlined" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
-            <TextField type="password" label="Password" variant="outlined" fullWidth value={password} onChange={(e) => setPassword(e.target.value)} />
+            <TextField label="Email" type="email" variant="outlined" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
+            <TextField label="Password" type="password" variant="outlined" fullWidth value={password} onChange={(e) => setPassword(e.target.value)} />
             <Button variant="contained" color="primary" sx={buttonStyle} onClick={handleSignUp}>Sign Up</Button>
           </Stack>
         </Box>
@@ -213,8 +230,8 @@ export default function Home() {
           </Typography>
           <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
           <Stack spacing={2}>
-            <TextField label="Email" variant="outlined" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
-            <TextField type="password" label="Password" variant="outlined" fullWidth value={password} onChange={(e) => setPassword(e.target.value)} />
+            <TextField label="Email" type="email" variant="outlined" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
+            <TextField label="Password" type="password" variant="outlined" fullWidth value={password} onChange={(e) => setPassword(e.target.value)} />
             <Button variant="contained" color="primary" sx={buttonStyle} onClick={handleSignIn}>Sign In</Button>
           </Stack>
         </Box>
@@ -228,7 +245,7 @@ export default function Home() {
           <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
           <Stack spacing={2}>
             <TextField label="Item Name" variant="outlined" fullWidth value={itemName} onChange={(e) => setItemName(e.target.value)} />
-            <TextField label="Quantity" type="number" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))} />
+            <TextField label="Quantity" type="number" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value) || 1)} />
             <TextField label="Description" variant="outlined" fullWidth value={description} onChange={(e) => setDescription(e.target.value)} />
             <TextField label="Vendor" variant="outlined" fullWidth value={vendor} onChange={(e) => setVendor(e.target.value)} />
             <Button variant="contained" color="primary" sx={buttonStyle} onClick={addItem}>Add Item</Button>
@@ -244,7 +261,7 @@ export default function Home() {
           <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
           <Stack spacing={2}>
             <TextField label="Item Name" variant="outlined" fullWidth value={currentItem?.name} disabled />
-            <TextField label="Quantity" type="number" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))} />
+            <TextField label="Quantity" type="number" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value) || 1)} />
             <Button variant="contained" color="primary" sx={buttonStyle} onClick={updateItem}>Update Item</Button>
           </Stack>
         </Box>
@@ -256,7 +273,7 @@ export default function Home() {
         </Typography>
         <Stack direction="row" spacing={2}>
           <TextField label="Search Item" variant="outlined" fullWidth value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-          <TextField label="Min Quantity" type="number" variant="outlined" value={minQuantity} onChange={(e) => setMinQuantity(parseInt(e.target.value))} />
+          <TextField label="Min Quantity" type="number" variant="outlined" value={minQuantity} onChange={(e) => setMinQuantity(parseInt(e.target.value) || 0)} />
           <TextField label="Vendor" variant="outlined" value={vendorFilter} onChange={(e) => setVendorFilter(e.target.value)} />
           <TextField label="Description" variant="outlined" value={descriptionFilter} onChange={(e) => setDescriptionFilter(e.target.value)} />
         </Stack>
