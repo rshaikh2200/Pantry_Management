@@ -66,16 +66,22 @@ export default function Home() {
     updateInventory()
   }, [])
 
-  useEffect(() => {
-    const filtered = inventory.filter(({ name, quantity, description, vendor }) =>
-      name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      description.toLowerCase().includes(descriptionFilter.toLowerCase()) &&
-      vendor.toLowerCase().includes(vendorFilter.toLowerCase()) &&
-      quantity >= minQuantity
-    )
-    setFilteredInventory(filtered)
-  }, [searchTerm, minQuantity, vendorFilter, descriptionFilter, inventory])
+useEffect(() => {
+  const filtered = inventory.filter((item) => {
+    const itemName = item?.name?.toLowerCase() || '';
+    const itemDescription = item?.description?.toLowerCase() || '';
+    const itemVendor = item?.vendor?.toLowerCase() || '';
+    return (
+      itemName.includes(searchTerm.toLowerCase()) &&
+      itemDescription.includes(descriptionFilter.toLowerCase()) &&
+      itemVendor.includes(vendorFilter.toLowerCase()) &&
+      item?.quantity >= minQuantity
+    );
+  });
+  setFilteredInventory(filtered);
+}, [searchTerm, minQuantity, vendorFilter, descriptionFilter, inventory]);
 
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
