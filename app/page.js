@@ -34,6 +34,8 @@ export default function Home() {
   const [openSignInModal, setOpenSignInModal] = useState(false)
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState(1)
+  const [description, setDescription] = useState('') // New state for description
+  const [vendor, setVendor] = useState('') // New state for vendor name
   const [searchTerm, setSearchTerm] = useState('')
   const [minQuantity, setMinQuantity] = useState(0)
   const [currentItem, setCurrentItem] = useState(null)
@@ -75,16 +77,21 @@ export default function Home() {
     })
   }, [])
 
-  const addItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item)
+  const addItem = async () => {
+    const docRef = doc(collection(firestore, 'inventory'), itemName)
     const docSnap = await getDoc(docRef)
     if (docSnap.exists()) {
       const { quantity: currentQuantity } = docSnap.data()
-      await setDoc(docRef, { quantity: currentQuantity + quantity })
+      await setDoc(docRef, { quantity: currentQuantity + quantity, description, vendor })
     } else {
-      await setDoc(docRef, { quantity })
+      await setDoc(docRef, { quantity, description, vendor })
     }
     await updateInventory()
+    setItemName('')
+    setQuantity(1)
+    setDescription('') // Reset description
+    setVendor('') // Reset vendor
+    handleCloseAdd()
   }
 
   const updateItem = async () => {
@@ -205,12 +212,9 @@ export default function Home() {
           <Stack spacing={2}>
             <TextField label="Item Name" variant="outlined" fullWidth value={itemName} onChange={(e) => setItemName(e.target.value)} />
             <TextField type="number" label="Quantity" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
-            <Button variant="contained" color="primary" sx={buttonStyle} onClick={() => {
-              addItem(itemName)
-              setItemName('')
-              setQuantity(1)
-              handleCloseAdd()
-            }}>Add</Button>
+            <TextField label="Description" variant="outlined" fullWidth value={description} onChange={(e) => setDescription(e.target.value)} /> {/* New input field for description */}
+            <TextField label="Vendor Name" variant="outlined" fullWidth value={vendor} onChange={(e) => setVendor(e.target.value)} /> {/* New input field for vendor */}
+            <Button variant="contained" color="primary" sx={buttonStyle} onClick={addItem}>Add</Button>
           </Stack>
         </Box>
       </Modal>
@@ -249,12 +253,20 @@ export default function Home() {
               Inventory Items
             </Typography>
             <Stack spacing={2}>
-              {filteredInventory.map(({ name, quantity }) => (
+              {filteredInventory.map(({ name, quantity, description, vendor }) => (
                 <Card key={name} variant="outlined" sx={{ mb: 1 }}>
                   <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6" color="#00796b">
-                      {name.charAt(0).toUpperCase() + name.slice(1)}
-                    </Typography>
+                    <Stack>
+                      <Typography variant="h6" color="#00796b">
+                        {name.charAt(0).toUpperCase() + name.slice(1)}
+                      </Typography>
+                      <Typography variant="body2" color="#004d40">
+                        {description}
+                      </Typography>
+                      <Typography variant="body2" color="#004d40">
+                        Vendor: {vendor}
+                      </Typography>
+                    </Stack>
                     <Typography variant="h6" color="#00796b">
                       Quantity: {quantity}
                     </Typography>
