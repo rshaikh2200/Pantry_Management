@@ -1,11 +1,9 @@
 'use client'
 
-import React { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Divider } from '@mui/material'
-import { firestore } from '@/firebase'
-import SignUp from './SignUp';
-import SignIn from './SignIn';
-
+import { firestore, auth } from '@/firebase'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import {
   collection,
   doc,
@@ -41,11 +39,15 @@ export default function Home() {
   const [filteredInventory, setFilteredInventory] = useState([])
   const [openAddModal, setOpenAddModal] = useState(false)
   const [openEditModal, setOpenEditModal] = useState(false)
+  const [openSignUpModal, setOpenSignUpModal] = useState(false)
+  const [openSignInModal, setOpenSignInModal] = useState(false)
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [minQuantity, setMinQuantity] = useState(0)
   const [currentItem, setCurrentItem] = useState(null)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, 'inventory'))
@@ -57,16 +59,6 @@ export default function Home() {
     setInventory(inventoryList)
     setFilteredInventory(inventoryList)
   }
-
-  const App = () => {
-  return (
-    <div>
-      <SignUp />
-      <SignIn />
-    </div>
-  );
-};
-  export default App;
 
   useEffect(() => {
     updateInventory()
@@ -122,6 +114,33 @@ export default function Home() {
   }
   const handleCloseEdit = () => setOpenEditModal(false)
 
+  const handleOpenSignUp = () => setOpenSignUpModal(true)
+  const handleCloseSignUp = () => setOpenSignUpModal(false)
+  const handleOpenSignIn = () => setOpenSignInModal(true)
+  const handleCloseSignIn = () => setOpenSignInModal(false)
+
+  const handleSignUp = async () => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password)
+      alert('Sign Up Successful')
+      handleCloseSignUp()
+    } catch (error) {
+      console.error('Error signing up:', error.message)
+      alert(error.message)
+    }
+  }
+
+  const handleSignIn = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+      alert('Sign In Successful')
+      handleCloseSignIn()
+    } catch (error) {
+      console.error('Error signing in:', error.message)
+      alert(error.message)
+    }
+  }
+
   return (
     <Box
       width="100vw"
@@ -132,8 +151,88 @@ export default function Home() {
       alignItems={'center'}
       gap={3}
       p={3}
-      bgcolor={'#e0f7fa'}  // Light cyan background
+      bgcolor={'#e0f7fa'}
     >
+      {/* Sign Up Modal */}
+      <Modal
+        open={openSignUpModal}
+        onClose={handleCloseSignUp}
+        aria-labelledby="modal-sign-up-title"
+        aria-describedby="modal-sign-up-description"
+      >
+        <Box sx={modalStyle}>
+          <Typography id="modal-sign-up-title" variant="h6" component="h2" color="#00796b">
+            Sign Up
+          </Typography>
+          <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
+          <Stack spacing={2}>
+            <TextField
+              label="Email"
+              variant="outlined"
+              fullWidth
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <TextField
+              type="password"
+              label="Password"
+              variant="outlined"
+              fullWidth
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              sx={buttonStyle}
+              onClick={handleSignUp}
+            >
+              Sign Up
+            </Button>
+          </Stack>
+        </Box>
+      </Modal>
+
+      {/* Sign In Modal */}
+      <Modal
+        open={openSignInModal}
+        onClose={handleCloseSignIn}
+        aria-labelledby="modal-sign-in-title"
+        aria-describedby="modal-sign-in-description"
+      >
+        <Box sx={modalStyle}>
+          <Typography id="modal-sign-in-title" variant="h6" component="h2" color="#00796b">
+            Sign In
+          </Typography>
+          <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
+          <Stack spacing={2}>
+            <TextField
+              label="Email"
+              variant="outlined"
+              fullWidth
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <TextField
+              type="password"
+              label="Password"
+              variant="outlined"
+              fullWidth
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              sx={buttonStyle}
+              onClick={handleSignIn}
+            >
+              Sign In
+            </Button>
+          </Stack>
+        </Box>
+      </Modal>
+
       {/* Add Item Modal */}
       <Modal
         open={openAddModal}
@@ -217,6 +316,14 @@ export default function Home() {
 
       <Button variant="contained" color="primary" sx={buttonStyle} onClick={handleOpenAdd}>
         Add New Item
+      </Button>
+
+      <Button variant="contained" color="secondary" sx={buttonStyle} onClick={handleOpenSignUp}>
+        Sign Up
+      </Button>
+
+      <Button variant="contained" color="secondary" sx={buttonStyle} onClick={handleOpenSignIn}>
+        Sign In
       </Button>
 
       <Box width="800px" marginTop={2} padding={3} bgcolor={'#ffffff'} borderRadius={2} boxShadow={2}>
