@@ -39,6 +39,8 @@ export default function Home() {
   const [vendor, setVendor] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [minQuantity, setMinQuantity] = useState(0)
+  const [vendorFilter, setVendorFilter] = useState('')
+  const [descriptionFilter, setDescriptionFilter] = useState('')
   const [currentItem, setCurrentItem] = useState(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -63,12 +65,12 @@ export default function Home() {
   useEffect(() => {
     const filtered = inventory.filter(({ name, quantity, description, vendor }) =>
       name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      description.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      vendor.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      description.toLowerCase().includes(descriptionFilter.toLowerCase()) &&
+      vendor.toLowerCase().includes(vendorFilter.toLowerCase()) &&
       quantity >= minQuantity
     )
     setFilteredInventory(filtered)
-  }, [searchTerm, minQuantity, inventory])
+  }, [searchTerm, minQuantity, vendorFilter, descriptionFilter, inventory])
 
   useEffect(() => {
     onAuthStateChanged(auth, (currentUser) => {
@@ -248,16 +250,18 @@ export default function Home() {
         </Box>
       </Modal>
 
-      <Box display="flex" flexDirection="column" gap={2} width="100%" flexGrow={1}>
+      <Box display="flex" flexDirection="column" gap={2} width="100%" flexGrow={1} maxHeight="70vh" overflowY="auto">
         <Typography variant="h5" component="div" color="#00796b" sx={{ mb: 2 }}>
           Inventory Items
         </Typography>
         <Stack direction="row" spacing={2}>
           <TextField label="Search Item" variant="outlined" fullWidth value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           <TextField label="Min Quantity" type="number" variant="outlined" value={minQuantity} onChange={(e) => setMinQuantity(parseInt(e.target.value))} />
+          <TextField label="Vendor" variant="outlined" value={vendorFilter} onChange={(e) => setVendorFilter(e.target.value)} />
+          <TextField label="Description" variant="outlined" value={descriptionFilter} onChange={(e) => setDescriptionFilter(e.target.value)} />
         </Stack>
 
-        <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+        <Box sx={{ flexGrow: 1, overflowY: 'auto', maxHeight: '60vh' }}>
           {filteredInventory.map((item) => (
             <Card key={item.name} sx={{ mb: 2 }}>
               <CardContent>
@@ -285,10 +289,10 @@ export default function Home() {
 
       <Box component="footer" sx={{ width: '100%', p: 2, mt: 'auto', bgcolor: '#00796b', color: '#ffffff', display: 'flex', justifyContent: 'space-between' }}>
         <Typography variant="body2">
-          © {new Date().getFullYear()} Property of XYZ Company
+          © {new Date().getFullYear()} Property of Rizwan's Company
         </Typography>
         <Typography variant="body2">
-          Name: John Doe | Phone: (123) 456-7890 | Address: 123 Main St, Anytown, USA
+          Name: Rizwan Shaikh | Phone: (404) 980-4465 | Address: 123 Main St, Anytown, USA
         </Typography>
       </Box>
     </Box>
