@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react';
-import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Divider } from '@mui/material';
-import { firestore } from '@/firebase';
+import { useState, useEffect } from 'react'
+import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Divider } from '@mui/material'
+import { firestore } from '@/firebase'
 import {
   collection,
   doc,
@@ -11,14 +11,7 @@ import {
   setDoc,
   deleteDoc,
   getDoc,
-} from 'firebase/firestore';
-
-// Client-side only effect to ensure window and other browser-specific APIs are not used during SSR
-const useClientEffect = (callback) => {
-  useEffect(() => {
-    callback();
-  }, []);
-};
+} from 'firebase/firestore'
 
 const modalStyle = {
   position: 'absolute',
@@ -33,88 +26,88 @@ const modalStyle = {
   display: 'flex',
   flexDirection: 'column',
   gap: 2,
-};
+}
 
 const buttonStyle = {
   borderRadius: 4,
   padding: '10px 20px',
-};
+}
 
 export default function Home() {
-  const [inventory, setInventory] = useState([]);
-  const [filteredInventory, setFilteredInventory] = useState([]);
-  const [openAddModal, setOpenAddModal] = useState(false);
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [itemName, setItemName] = useState('');
-  const [quantity, setQuantity] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [minQuantity, setMinQuantity] = useState(0);
-  const [currentItem, setCurrentItem] = useState(null);
+  const [inventory, setInventory] = useState([])
+  const [filteredInventory, setFilteredInventory] = useState([])
+  const [openAddModal, setOpenAddModal] = useState(false)
+  const [openEditModal, setOpenEditModal] = useState(false)
+  const [itemName, setItemName] = useState('')
+  const [quantity, setQuantity] = useState(1)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [minQuantity, setMinQuantity] = useState(0)
+  const [currentItem, setCurrentItem] = useState(null)
 
   const updateInventory = async () => {
-    const snapshot = query(collection(firestore, 'inventory'));
-    const docs = await getDocs(snapshot);
-    const inventoryList = [];
+    const snapshot = query(collection(firestore, 'inventory'))
+    const docs = await getDocs(snapshot)
+    const inventoryList = []
     docs.forEach((doc) => {
-      inventoryList.push({ name: doc.id, ...doc.data() });
-    });
-    setInventory(inventoryList);
-    setFilteredInventory(inventoryList);
-  };
+      inventoryList.push({ name: doc.id, ...doc.data() })
+    })
+    setInventory(inventoryList)
+    setFilteredInventory(inventoryList)
+  }
 
-  useClientEffect(() => {
-    updateInventory();
-  });
+  useEffect(() => {
+    updateInventory()
+  }, [])
 
   useEffect(() => {
     const filtered = inventory.filter(({ name, quantity }) =>
       name.toLowerCase().includes(searchTerm.toLowerCase()) &&
       quantity >= minQuantity
-    );
-    setFilteredInventory(filtered);
-  }, [searchTerm, minQuantity, inventory]);
+    )
+    setFilteredInventory(filtered)
+  }, [searchTerm, minQuantity, inventory])
 
   const addItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item);
-    const docSnap = await getDoc(docRef);
+    const docRef = doc(collection(firestore, 'inventory'), item)
+    const docSnap = await getDoc(docRef)
     if (docSnap.exists()) {
-      const { quantity: currentQuantity } = docSnap.data();
-      await setDoc(docRef, { quantity: currentQuantity + quantity });
+      const { quantity: currentQuantity } = docSnap.data()
+      await setDoc(docRef, { quantity: currentQuantity + quantity })
     } else {
-      await setDoc(docRef, { quantity });
+      await setDoc(docRef, { quantity })
     }
-    await updateInventory();
-  };
+    await updateInventory()
+  }
 
   const updateItem = async () => {
-    const docRef = doc(collection(firestore, 'inventory'), currentItem.name);
-    await setDoc(docRef, { quantity });
-    await updateInventory();
-    setOpenEditModal(false);
-  };
+    const docRef = doc(collection(firestore, 'inventory'), currentItem.name)
+    await setDoc(docRef, { quantity })
+    await updateInventory()
+    setOpenEditModal(false)
+  }
 
   const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item);
-    const docSnap = await getDoc(docRef);
+    const docRef = doc(collection(firestore, 'inventory'), item)
+    const docSnap = await getDoc(docRef)
     if (docSnap.exists()) {
-      const { quantity } = docSnap.data();
+      const { quantity } = docSnap.data()
       if (quantity === 1) {
-        await deleteDoc(docRef);
+        await deleteDoc(docRef)
       } else {
-        await setDoc(docRef, { quantity: quantity - 1 });
+        await setDoc(docRef, { quantity: quantity - 1 })
       }
     }
-    await updateInventory();
-  };
+    await updateInventory()
+  }
 
-  const handleOpenAdd = () => setOpenAddModal(true);
-  const handleCloseAdd = () => setOpenAddModal(false);
+  const handleOpenAdd = () => setOpenAddModal(true)
+  const handleCloseAdd = () => setOpenAddModal(false)
   const handleOpenEdit = (item) => {
-    setCurrentItem(item);
-    setQuantity(item.quantity);
-    setOpenEditModal(true);
-  };
-  const handleCloseEdit = () => setOpenEditModal(false);
+    setCurrentItem(item)
+    setQuantity(item.quantity)
+    setOpenEditModal(true)
+  }
+  const handleCloseEdit = () => setOpenEditModal(false)
 
   return (
     <Box
@@ -161,10 +154,10 @@ export default function Home() {
               color="primary"
               sx={buttonStyle}
               onClick={() => {
-                addItem(itemName);
-                setItemName('');
-                setQuantity(1);
-                handleCloseAdd();
+                addItem(itemName)
+                setItemName('')
+                setQuantity(1)
+                handleCloseAdd()
               }}
             >
               Add
@@ -268,6 +261,7 @@ export default function Home() {
         </Card>
       </Box>
     </Box>
-  );
+  )
 }
+
 
