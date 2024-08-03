@@ -1,8 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React { useState, useEffect } from 'react'
 import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Divider } from '@mui/material'
 import { firestore } from '@/firebase'
+import SignUp from './SignUp';
+import SignIn from './SignIn';
+
 import {
   collection,
   doc,
@@ -54,6 +57,16 @@ export default function Home() {
     setInventory(inventoryList)
     setFilteredInventory(inventoryList)
   }
+
+  const App = () => {
+  return (
+    <div>
+      <SignUp />
+      <SignIn />
+    </div>
+  );
+};
+  export default App;
 
   useEffect(() => {
     updateInventory()
