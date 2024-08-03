@@ -1,4 +1,3 @@
-'use client'
 import { useState, useEffect } from 'react'
 import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Divider, AppBar, Toolbar } from '@mui/material'
 import { firestore, auth } from '@/firebase'
@@ -211,10 +210,10 @@ export default function Home() {
           <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
           <Stack spacing={2}>
             <TextField label="Item Name" variant="outlined" fullWidth value={itemName} onChange={(e) => setItemName(e.target.value)} />
-            <TextField type="number" label="Quantity" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
-            <TextField label="Description" variant="outlined" fullWidth value={description} onChange={(e) => setDescription(e.target.value)} /> {/* New input field for description */}
-            <TextField label="Vendor Name" variant="outlined" fullWidth value={vendor} onChange={(e) => setVendor(e.target.value)} /> {/* New input field for vendor */}
-            <Button variant="contained" color="primary" sx={buttonStyle} onClick={addItem}>Add</Button>
+            <TextField label="Quantity" type="number" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))} />
+            <TextField label="Description" variant="outlined" fullWidth value={description} onChange={(e) => setDescription(e.target.value)} /> {/* New description field */}
+            <TextField label="Vendor" variant="outlined" fullWidth value={vendor} onChange={(e) => setVendor(e.target.value)} /> {/* New vendor field */}
+            <Button variant="contained" color="primary" sx={buttonStyle} onClick={addItem}>Add Item</Button>
           </Stack>
         </Box>
       </Modal>
@@ -223,68 +222,50 @@ export default function Home() {
       <Modal open={openEditModal} onClose={handleCloseEdit} aria-labelledby="modal-edit-item-title" aria-describedby="modal-edit-item-description">
         <Box sx={modalStyle}>
           <Typography id="modal-edit-item-title" variant="h6" component="h2" color="#00796b">
-            Edit Item Quantity
+            Edit Item
           </Typography>
           <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
           <Stack spacing={2}>
-            <Typography variant="h6" color="#00796b">
-              {currentItem?.name.charAt(0).toUpperCase() + currentItem?.name.slice(1)}
-            </Typography>
-            <TextField type="number" label="Quantity" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
-            <Button variant="contained" color="success" sx={buttonStyle} onClick={updateItem}>Update</Button>
+            <TextField label="Item Name" variant="outlined" fullWidth value={currentItem?.name} disabled />
+            <TextField label="Quantity" type="number" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))} />
+            <Button variant="contained" color="primary" sx={buttonStyle} onClick={updateItem}>Update Item</Button>
           </Stack>
         </Box>
       </Modal>
 
-      <Box width="800px" marginTop={2} padding={3} bgcolor="#ffffff" borderRadius={2} boxShadow={2}>
-        <Typography variant="h6" color="#00796b" mb={2}>
-          Filter Items
-        </Typography>
-        <Stack spacing={2}>
+      {/* Inventory List */}
+      <Box display="flex" flexDirection="column" gap={2} width="100%">
+        <Stack direction="row" spacing={2}>
           <TextField label="Search Item" variant="outlined" fullWidth value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-          <TextField type="number" label="Minimum Quantity" variant="outlined" fullWidth value={minQuantity} onChange={(e) => setMinQuantity(Number(e.target.value))} />
+          <TextField label="Min Quantity" type="number" variant="outlined" value={minQuantity} onChange={(e) => setMinQuantity(parseInt(e.target.value))} />
         </Stack>
-      </Box>
 
-      <Box width="800px" marginTop={3} borderRadius={2} overflow="auto">
-        <Card variant="outlined">
-          <CardContent>
-            <Typography variant="h4" color="#00796b" textAlign="center" mb={2}>
-              Inventory Items
-            </Typography>
-            <Stack spacing={2}>
-              {filteredInventory.map(({ name, quantity, description, vendor }) => (
-                <Card key={name} variant="outlined" sx={{ mb: 1 }}>
-                  <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Stack>
-                      <Typography variant="h6" color="#00796b">
-                        {name.charAt(0).toUpperCase() + name.slice(1)}
-                      </Typography>
-                      <Typography variant="body2" color="#004d40">
-                        {description}
-                      </Typography>
-                      <Typography variant="body2" color="#004d40">
-                        Vendor: {vendor}
-                      </Typography>
-                    </Stack>
-                    <Typography variant="h6" color="#00796b">
-                      Quantity: {quantity}
-                    </Typography>
-                    <Stack direction="row" spacing={1}>
-                      <Button variant="contained" color="warning" sx={buttonStyle} onClick={() => handleOpenEdit({ name, quantity })}>Edit</Button>
-                      <Button variant="contained" color="error" sx={buttonStyle} onClick={() => removeItem(name)}>Remove</Button>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              ))}
-            </Stack>
-          </CardContent>
-        </Card>
+        {filteredInventory.map((item) => (
+          <Card key={item.name}>
+            <CardContent>
+              <Typography variant="h6" component="div">
+                {item.name}
+              </Typography>
+              <Typography color="text.secondary">
+                Quantity: {item.quantity}
+              </Typography>
+              <Typography color="text.secondary">
+                Description: {item.description} {/* Display description */}
+              </Typography>
+              <Typography color="text.secondary">
+                Vendor: {item.vendor} {/* Display vendor */}
+              </Typography>
+              <Stack direction="row" spacing={2} mt={2}>
+                <Button variant="contained" color="primary" onClick={() => handleOpenEdit(item)}>Edit</Button>
+                <Button variant="contained" color="secondary" onClick={() => removeItem(item.name)}>Remove</Button>
+              </Stack>
+            </CardContent>
+          </Card>
+        ))}
       </Box>
     </Box>
   )
 }
-
 
 
 
