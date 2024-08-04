@@ -1,3 +1,4 @@
+// app/page.js
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -34,7 +35,6 @@ export default function Home() {
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openSignUpModal, setOpenSignUpModal] = useState(false)
   const [openSignInModal, setOpenSignInModal] = useState(false)
-  const [openRecipeModal, setOpenRecipeModal] = useState(false) // Added state for recipe modal
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [description, setDescription] = useState('')
@@ -48,8 +48,7 @@ export default function Home() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [user, setUser] = useState(null)
-  const [prompt, setPrompt] = useState<string>("")
-  const [recipes, setRecipes] = useState<any[]>([])
+  
 
   const updateInventory = async () => {
     try {
@@ -61,11 +60,7 @@ export default function Home() {
       })
       setInventory(inventoryList)
       setFilteredInventory(inventoryList)
-      await fetchRecipeSuggestions(inventoryList)
-    } catch (error) {
-      console.error('Error fetching inventory:', error.message)
-    }
-  }
+     
 
   useEffect(() => {
     updateInventory()
@@ -73,18 +68,18 @@ export default function Home() {
 
   useEffect(() => {
     const filtered = inventory.filter((item) => {
-      const itemName = item?.name?.toLowerCase() || ''
-      const itemDescription = item?.description?.toLowerCase() || ''
-      const itemVendor = item?.vendor?.toLowerCase() || ''
+      const itemName = item?.name?.toLowerCase() || '';
+      const itemDescription = item?.description?.toLowerCase() || '';
+      const itemVendor = item?.vendor?.toLowerCase() || '';
       return (
         itemName.includes(searchTerm.toLowerCase()) &&
         itemDescription.includes(descriptionFilter.toLowerCase()) &&
         itemVendor.includes(vendorFilter.toLowerCase()) &&
         item?.quantity >= minQuantity
-      )
-    })
-    setFilteredInventory(filtered)
-  }, [searchTerm, minQuantity, vendorFilter, descriptionFilter, inventory])
+      );
+    });
+    setFilteredInventory(filtered);
+  }, [searchTerm, minQuantity, vendorFilter, descriptionFilter, inventory]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -160,68 +155,182 @@ export default function Home() {
   const handleCloseSignUp = () => setOpenSignUpModal(false)
   const handleOpenSignIn = () => setOpenSignInModal(true)
   const handleCloseSignIn = () => setOpenSignInModal(false)
-
   const handleSignUp = async () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       await updateProfile(userCredential.user, { displayName: username })
-      alert('Sign Up Successful')
+      setUser(userCredential.user)
       handleCloseSignUp()
     } catch (error) {
       console.error('Error signing up:', error.message)
-      alert(error.message)
     }
   }
 
   const handleSignIn = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password)
-      alert('Sign In Successful')
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      setUser(userCredential.user)
       handleCloseSignIn()
     } catch (error) {
       console.error('Error signing in:', error.message)
-      alert(error.message)
     }
   }
 
   const handleSignOut = async () => {
     try {
       await signOut(auth)
-      alert('Sign Out Successful')
+      setUser(null)
     } catch (error) {
       console.error('Error signing out:', error.message)
-      alert(error.message)
     }
   }
 
+  const handleRecipeSuggestion = () => {
+    fetchRecipeSuggestions();
+    setOpenRecipeModal(true)
+  }
 
+  const handleCloseRecipe = () => setOpenRecipeModal(false)
 
   return (
-    <Box width="100vw" height="100vh" display="flex" flexDirection="column" alignItems="center" gap={3} p={3} bgcolor="#e0f7fa">
+    <div>
       <AppBar position="static">
         <Toolbar>
+          <Typography variant="h6" style={{ flexGrow: 1 }}>
+            Inventory Management
+          </Typography>
           {user ? (
-            <>
-              <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                Welcome, {user.displayName}
-              </Typography>
-              <Button color="inherit" onClick={handleSignOut}>Logout</Button>
-            </>
+            <div>
+              <Button color="inherit" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+              <Button color="inherit" onClick={handleRecipeSuggestion}>
+                Suggest Recipe
+              </Button>
+            </div>
           ) : (
-            <>
-              <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                Welcome
-              </Typography>
-              <Button color="inherit" onClick={handleOpenSignUp}>Sign Up</Button>
-              <Button color="inherit" onClick={handleOpenSignIn}>Sign In</Button>
-            </>
+            <div>
+              <Button color="inherit" onClick={handleOpenSignUp}>
+                Sign Up
+              </Button>
+              <Button color="inherit" onClick={handleOpenSignIn}>
+                Sign In
+              </Button>
+            </div>
           )}
-          <Button color="inherit" onClick={handleOpenAdd}>Add Item</Button>
-          <Button color="inherit" onClick={handleOpenRecipeModal}>Suggest Recipe</Button> {/* Added button */}
         </Toolbar>
       </AppBar>
-
-      {/* Modals for Sign Up, Sign In, Add Item, Edit Item, and Recipe Suggestions */}
-      <Modal open={openSignUpModal} onClose={handleCloseSignUp} aria-labelledby="modal-sign-up-title" aria-describedby="modal-sign-up-description">
+      <Box p={3}>
+        <Stack direction="row" spacing={2}>
+          <TextField label="Search" variant="outlined" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <TextField
+            label="Min Quantity"
+            type="number"
+            variant="outlined"
+            value={minQuantity}
+            onChange={(e) => setMinQuantity(Number(e.target.value))}
+          />
+          <TextField label="Vendor" variant="outlined" value={vendorFilter} onChange={(e) => setVendorFilter(e.target.value)} />
+          <TextField label="Description" variant="outlined" value={descriptionFilter} onChange={(e) => setDescriptionFilter(e.target.value)} />
+          <Button variant="contained" color="primary" onClick={handleOpenAdd} style={buttonStyle}>
+            Add Item
+          </Button>
+        </Stack>
+        <Divider style={{ margin: '20px 0' }} />
+        <Stack direction="column" spacing={2}>
+          {filteredInventory.map((item) => (
+            <Card key={item.name}>
+              <CardContent>
+                <Typography variant="h6">{item.name}</Typography>
+                <Typography>Quantity: {item.quantity}</Typography>
+                <Typography>Description: {item.description}</Typography>
+                <Typography>Vendor: {item.vendor}</Typography>
+                <Button variant="contained" color="primary" onClick={() => handleOpenEdit(item)} style={buttonStyle}>
+                  Edit
+                </Button>
+                <Button variant="contained" color="secondary" onClick={() => removeItem(item.name)} style={buttonStyle}>
+                  Remove
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
+      </Box>
+      <Modal open={openAddModal} onClose={handleCloseAdd}>
         <Box sx={modalStyle}>
-          <Typography id
+          <Typography variant="h6">Add Item</Typography>
+          <TextField label="Item Name" variant="outlined" value={itemName} onChange={(e) => setItemName(e.target.value)} />
+          <TextField
+            label="Quantity"
+            type="number"
+            variant="outlined"
+            value={quantity}
+            onChange={(e) => setQuantity(Number(e.target.value))}
+          />
+          <TextField label="Description" variant="outlined" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <TextField label="Vendor" variant="outlined" value={vendor} onChange={(e) => setVendor(e.target.value)} />
+          <Button variant="contained" color="primary" onClick={addItem} style={buttonStyle}>
+            Add
+          </Button>
+        </Box>
+      </Modal>
+      <Modal open={openEditModal} onClose={handleCloseEdit}>
+        <Box sx={modalStyle}>
+          <Typography variant="h6">Edit Item</Typography>
+          <TextField
+            label="Quantity"
+            type="number"
+            variant="outlined"
+            value={quantity}
+            onChange={(e) => setQuantity(Number(e.target.value))}
+          />
+          <Button variant="contained" color="primary" onClick={updateItem} style={buttonStyle}>
+            Update
+          </Button>
+        </Box>
+      </Modal>
+      <Modal open={openSignUpModal} onClose={handleCloseSignUp}>
+        <Box sx={modalStyle}>
+          <Typography variant="h6">Sign Up</Typography>
+          <TextField label="Username" variant="outlined" value={username} onChange={(e) => setUsername(e.target.value)} />
+          <TextField label="Email" variant="outlined" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <TextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button variant="contained" color="primary" onClick={handleSignUp} style={buttonStyle}>
+            Sign Up
+          </Button>
+        </Box>
+      </Modal>
+      <Modal open={openSignInModal} onClose={handleCloseSignIn}>
+        <Box sx={modalStyle}>
+          <Typography variant="h6">Sign In</Typography>
+          <TextField label="Email" variant="outlined" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <TextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button variant="contained" color="primary" onClick={handleSignIn} style={buttonStyle}>
+            Sign In
+          </Button>
+        </Box>
+      </Modal>
+      <Modal open={openRecipeModal} onClose={handleCloseRecipe}>
+        <Box sx={modalStyle}>
+          <Typography variant="h6">Recipe Suggestions</Typography>
+          <pre>{recipes}</pre>
+          <Button variant="contained" color="primary" onClick={handleCloseRecipe} style={buttonStyle}>
+            Close
+          </Button>
+        </Box>
+      </Modal>
+    </div>
+  )
+}
