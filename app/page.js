@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -5,7 +6,7 @@ import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Di
 import { firestore, auth } from '@/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth'
 import { collection, doc, getDocs, query, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
-import axios from 'axios'; // Added for making API requests
+import axios from 'axios';
 
 const modalStyle = {
   position: 'absolute',
@@ -34,6 +35,7 @@ export default function Home() {
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openSignUpModal, setOpenSignUpModal] = useState(false)
   const [openSignInModal, setOpenSignInModal] = useState(false)
+  const [openRecipeModal, setOpenRecipeModal] = useState(false) // New state for recipe suggestions modal
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [description, setDescription] = useState('')
@@ -71,10 +73,9 @@ export default function Home() {
       quantity: item.quantity
     }));
 
-    const prompt = `
-      Based on the following pantry items, suggest some recipes or meals that can be prepared:
-      ${JSON.stringify({ items })}
-    `;
+    const prompt = 
+      `Based on the following pantry items, suggest some recipes or meals that can be prepared:\n
+      ${JSON.stringify({ items })}`;
 
     try {
       const response = await axios.post('https://api.openai.com/v1/completions', {
@@ -83,8 +84,7 @@ export default function Home() {
         max_tokens: 150
       }, {
         headers: {
-          'Authorization': `Bearer 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
-`,
+          'Authorization': 'Bearer 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', // Replace with your actual API key
           'Content-Type': 'application/json'
         }
       });
@@ -222,6 +222,9 @@ export default function Home() {
     }
   }
 
+  const handleOpenRecipeModal = () => setOpenRecipeModal(true) // Open recipe suggestions modal
+  const handleCloseRecipeModal = () => setOpenRecipeModal(false) // Close recipe suggestions modal
+
   return (
     <Box width="100vw" height="100vh" display="flex" flexDirection="column" alignItems="center" gap={3} p={3} bgcolor="#e0f7fa">
       <AppBar position="static">
@@ -243,10 +246,11 @@ export default function Home() {
             </>
           )}
           <Button color="inherit" onClick={handleOpenAdd}>Add Item</Button>
+          <Button color="inherit" onClick={handleOpenRecipeModal}>Suggest Recipe</Button> {/* Added button */}
         </Toolbar>
       </AppBar>
 
-      {/* Modals for Sign Up, Sign In, Add Item, and Edit Item */}
+      {/* Modals for Sign Up, Sign In, Add Item, Edit Item, and Recipe Suggestions */}
       <Modal open={openSignUpModal} onClose={handleCloseSignUp} aria-labelledby="modal-sign-up-title" aria-describedby="modal-sign-up-description">
         <Box sx={modalStyle}>
           <Typography id="modal-sign-up-title" variant="h6" component="h2" color="#00796b">
@@ -306,7 +310,17 @@ export default function Home() {
         </Box>
       </Modal>
 
-      {/* Recipe Suggestions Section */}
+      {/* Recipe Suggestions Modal */}
+      <Modal open={openRecipeModal} onClose={handleCloseRecipeModal} aria-labelledby="modal-recipe-suggestions-title" aria-describedby="modal-recipe-suggestions-description">
+        <Box sx={modalStyle}>
+          <Typography id="modal-recipe-suggestions-title" variant="h6" component="h2" color="#00796b">
+            Recipe Suggestions
+          </Typography>
+          <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
+          <Typography>{recipeSuggestions}</Typography>
+        </Box>
+      </Modal>
+
       <Box display="flex" flexDirection="column" gap={2} width="100%" flexGrow={1} maxHeight="100vh" overflowY="auto">
         <Typography variant="h5" component="div" color="#00796b" sx={{ mb: 2 }}>
           Inventory Items
@@ -342,14 +356,6 @@ export default function Home() {
             </Card>
           ))}
         </Box>
-
-        {/* Recipe Suggestions Modal */}
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h5" component="div" color="#00796b" sx={{ mb: 2 }}>
-            Recipe Suggestions
-          </Typography>
-          <Typography>{recipeSuggestions}</Typography>
-        </Box>
       </Box>
 
       <Box component="footer" sx={{ width: '100%', p: 2, mt: 'auto', bgcolor: '#00796b', color: '#ffffff', display: 'flex', justifyContent: 'space-between' }}>
@@ -363,3 +369,4 @@ export default function Home() {
     </Box>
   )
 }
+
