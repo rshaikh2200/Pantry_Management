@@ -32,7 +32,7 @@ const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: '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', // Replace with your actual API key
 
-})
+});
 
 export default function Home() {
   const [inventory, setInventory] = useState([])
