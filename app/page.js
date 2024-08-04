@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -74,17 +73,17 @@ export default function Home() {
     }));
 
     const prompt = 
-      `Generate 3 dish ideas based on ingredients provided. The output should in JSON array and each object should contain a dish name field name 'cusine name', description field name 'description':\n
+      `Based on the following inventory items, generate three recipes for a dish. The output should be in JSON array and each object should contain a recipe name filed name 'name', description filed name 'description', array of step by step instructions named 'instructions'.:\n
       ${JSON.stringify({ items })}`;
 
     try {
-      const response = await axios.post('https://api.openai.com/v1/completions', {
+      const response = await chatModel.invoke('prompt', {
         model: 'text-davinci-003',
         prompt: prompt,
         max_tokens: 150
       }, {
         headers: {
-          'Authorization': 'Bearer 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', // Replace with your actual API key
+          'Authorization': 'Bearer sk-proj-c_k630M85ZttidlX_AVlnuKk13913yPWIrES5BKYg_w2Gn6Rwj9-uALhIIT3BlbkFJXcU7eC_c2F1596LQyLN', // Replace with your actual API key
           'Content-Type': 'application/json'
         }
       });
@@ -369,4 +368,3 @@ export default function Home() {
     </Box>
   )
 }
-
