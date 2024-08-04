@@ -194,14 +194,7 @@ export default function Home() {
     }
   }
 
-  const handleOpenRecipeModal = () => setOpenRecipeModal(true) // Function to open recipe modal
-  const handleCloseRecipeModal = () => setOpenRecipeModal(false) // Function to close recipe modal
 
-  const fetchRecipeSuggestions = async (inventoryList) => {
-    // Add your logic to fetch recipe suggestions here
-    const suggestions = "Sample recipe suggestion based on inventory." // Replace with actual logic
-    setRecipes(suggestions)
-  }
 
   return (
     <Box width="100vw" height="100vh" display="flex" flexDirection="column" alignItems="center" gap={3} p={3} bgcolor="#e0f7fa">
