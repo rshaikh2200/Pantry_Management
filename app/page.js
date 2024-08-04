@@ -1,11 +1,11 @@
 'use client'
 
+
 import { useState, useEffect } from 'react'
 import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Divider, AppBar, Toolbar } from '@mui/material'
 import { firestore, auth } from '@/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth'
 import { collection, doc, getDocs, query, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
-
 
 const modalStyle = {
   position: 'absolute',
@@ -47,7 +47,6 @@ export default function Home() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [user, setUser] = useState(null)
-  
 
   const updateInventory = async () => {
     try {
@@ -59,7 +58,11 @@ export default function Home() {
       })
       setInventory(inventoryList)
       setFilteredInventory(inventoryList)
-      
+    } catch (error) {
+      console.error('Error updating inventory:', error.message)
+    }
+  }
+
   useEffect(() => {
     updateInventory()
   }, [])
@@ -187,8 +190,6 @@ export default function Home() {
     }
   }
 
-
-
   return (
     <Box width="100vw" height="100vh" display="flex" flexDirection="column" alignItems="center" gap={3} p={3} bgcolor="#e0f7fa">
       <AppBar position="static">
@@ -274,8 +275,6 @@ export default function Home() {
         </Box>
       </Modal>
 
-   
-
       <Box display="flex" flexDirection="column" gap={2} width="100%" flexGrow={1} maxHeight="100vh" overflowY="auto">
         <Typography variant="h5" component="div" color="#00796b" sx={{ mb: 2 }}>
           Inventory Items
@@ -324,3 +323,4 @@ export default function Home() {
     </Box>
   )
 }
+
