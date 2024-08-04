@@ -74,28 +74,29 @@ export default function Home() {
   }
 
   const fetchRecipeSuggestions = async (inventoryList) => {
-    const items = inventoryList.map(item => ({
-      name: item.name,
-      quantity: item.quantity
-    }));
+  const items = inventoryList.map(item => ({
+    name: item.name,
+    quantity: item.quantity
+  }));
 
-    const prompt = 
-      `Based on the following inventory ${items}, generate three recipes for a dish. The output should be in JSON array and each object should contain a recipe name filed name 'name', description filed name 'description', array of step by step instructions named 'instructions':\n
-      ${JSON.stringify(items)}`;
+  const prompt = `Based on the following inventory ${JSON.stringify(items)}, generate three recipes for a dish. The output should be in JSON array and each object should contain a recipe name field named 'name', description field named 'description', and an array of step-by-step instructions named 'instructions'.`;
 
-    try {
-      const response = await openai.createChatCompletion({
-        model: 'meta-llama/llama-3.1-8b-instruct:free',
-        messages: [
-          { role: 'user', content: prompt }
-        ]
-      });
+  try {
+    const response = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo', // Use a valid model
+      messages: [
+        { role: 'user', content: prompt }
+      ]
+    });
 
-      setRecipeSuggestions(response.data.choices[0].message.content.trim());
-    } catch (error) {
-      console.error('Error fetching recipe suggestions:', error.message);
-    }
+    console.log('OpenAI Response:', response); // Log response for debugging
+    const recipeSuggestionsData = response.data.choices[0].message.content.trim();
+    setRecipeSuggestions(recipeSuggestionsData);
+  } catch (error) {
+    console.error('Error fetching recipe suggestions:', error.message);
   }
+}
+
 
   useEffect(() => {
     updateInventory()
