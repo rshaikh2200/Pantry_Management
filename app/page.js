@@ -74,7 +74,7 @@ export default function Home() {
     }));
 
     const prompt = 
-      `Based on the following pantry items, suggest some recipes or meals that can be prepared:\n
+      `Generate 3 dish ideas based on ingredients provided. The output should in JSON array and each object should contain a dish name field name 'cusine name', description field name 'description':\n
       ${JSON.stringify({ items })}`;
 
     try {
