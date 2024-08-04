@@ -1,34 +1,19 @@
 'use server';
 import Groq from 'groq-sdk';
-import dotenv from 'dotenv';
 
-// Load environment variables from .env file
-dotenv.config();
+const groq = new Groq({
+  apiKey: process.env['GROQ_API_KEY'], // This is the default and can be omitted
+});
 
-// Initialize Groq with the API key from environment variables
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
-export async function main() {
-  try {
-    const chatCompletion = await getGroqChatCompletion();
-    // Print the completion returned by the LLM.
-    console.log(chatCompletion.choices[0]?.message?.content || 'No content received.');
-  } catch (error) {
-    console.error('Error getting chat completion:', error);
-  }
-}
-
-export async function getGroqChatCompletion() {
-  return groq.chat.completions.create({
+async function main() {
+  const params: Groq.Chat.CompletionCreateParams = {
     messages: [
-      {
-        role: 'user',
-        content: 'Explain the importance of fast language models',
-      },
+      { role: 'system', content: 'You are a helpful assistant.' },
+      { role: 'user', content: 'Explain the importance of low latency LLMs' },
     ],
     model: 'llama3-8b-8192',
-  });
+  };
+  const chatCompletion: Groq.Chat.ChatCompletion = await groq.chat.completions.create(params);
 }
 
-// Run the main function to get and display the response
 main();
