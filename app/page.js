@@ -1,6 +1,5 @@
 'use client'
 
-
 import { useState, useEffect } from 'react'
 import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Divider, AppBar, Toolbar } from '@mui/material'
 import { firestore, auth } from '@/firebase'
@@ -211,11 +210,10 @@ export default function Home() {
             </>
           )}
           <Button color="inherit" onClick={handleOpenAdd}>Add Item</Button>
-          <Button color="inherit" onClick={handleOpenRecipeModal}>Suggest Recipe</Button> {/* Added button */}
         </Toolbar>
       </AppBar>
 
-      {/* Modals for Sign Up, Sign In, Add Item, Edit Item, and Recipe Suggestions */}
+      {/* Modals for Sign Up, Sign In, Add Item, and Edit Item */}
       <Modal open={openSignUpModal} onClose={handleCloseSignUp} aria-labelledby="modal-sign-up-title" aria-describedby="modal-sign-up-description">
         <Box sx={modalStyle}>
           <Typography id="modal-sign-up-title" variant="h6" component="h2" color="#00796b">
