@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Divider, AppBar, Toolbar } from '@mui/material'
+import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, AppBar, Toolbar } from '@mui/material'
 import { firestore, auth } from '@/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth'
 import { collection, doc, getDocs, query, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
@@ -28,11 +28,12 @@ const buttonStyle = {
 }
 
 // Initialize OpenAI API client
-const configuration = new Configuration{
+const configuration = new Configuration({
   baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: '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', // Replace with your actual API key
-
+  apiKey: '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', 
 });
+
+const openai = new OpenAIApi(configuration); // Create an instance of OpenAIApi with the configuration
 
 export default function Home() {
   const [inventory, setInventory] = useState([])
@@ -83,14 +84,14 @@ export default function Home() {
       ${JSON.stringify(items)}`;
 
     try {
-      const response = await openai.chat.completions.create({
+      const response = await openai.createChatCompletion({
         model: 'meta-llama/llama-3.1-8b-instruct:free',
         messages: [
           { role: 'user', content: prompt }
         ]
       });
 
-      setRecipeSuggestions(response.choices[0].message.content.trim());
+      setRecipeSuggestions(response.data.choices[0].message.content.trim());
     } catch (error) {
       console.error('Error fetching recipe suggestions:', error.message);
     }
@@ -329,4 +330,3 @@ export default function Home() {
     </>
   )
 }
-
