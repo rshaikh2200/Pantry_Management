@@ -79,7 +79,7 @@ export default function Home() {
     }));
 
     const prompt = 
-      `Based on the following inventory items, generate three recipes for a dish. The output should be in JSON array and each object should contain a recipe name filed name 'name', description filed name 'description', array of step by step instructions named 'instructions':\n
+      `Based on the following inventory ${items}, generate three recipes for a dish. The output should be in JSON array and each object should contain a recipe name filed name 'name', description filed name 'description', array of step by step instructions named 'instructions':\n
       ${JSON.stringify(items)}`;
 
     try {
