@@ -14,7 +14,8 @@
     "@mui/material": "^5.16.6",
     "firebase": "^10.12.5",
     "next": "14.2.5",
-    "openai": "^3.0.0",
+    "dotenv": "^16.0.0",
+    "groq-sdk": "^1.0.0",  
     "react-dom": "^18"
   },
   "devDependencies": {
