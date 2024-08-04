@@ -5,6 +5,7 @@ import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Di
 import { firestore, auth } from '@/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth'
 import { collection, doc, getDocs, query, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
+import axios from 'axios'; // Added for making API requests
 
 const modalStyle = {
   position: 'absolute',
@@ -46,6 +47,7 @@ export default function Home() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [user, setUser] = useState(null)
+  const [recipeSuggestions, setRecipeSuggestions] = useState('')
 
   const updateInventory = async () => {
     try {
@@ -57,8 +59,39 @@ export default function Home() {
       })
       setInventory(inventoryList)
       setFilteredInventory(inventoryList)
+      await fetchRecipeSuggestions(inventoryList)
     } catch (error) {
       console.error('Error fetching inventory:', error.message)
+    }
+  }
+
+  const fetchRecipeSuggestions = async (inventoryList) => {
+    const items = inventoryList.map(item => ({
+      name: item.name,
+      quantity: item.quantity
+    }));
+
+    const prompt = `
+      Based on the following pantry items, suggest some recipes or meals that can be prepared:
+      ${JSON.stringify({ items })}
+    `;
+
+    try {
+      const response = await axios.post('https://api.openai.com/v1/completions', {
+        model: 'text-davinci-003',
+        prompt: prompt,
+        max_tokens: 150
+      }, {
+        headers: {
+          'Authorization': `Bearer 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
+`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      setRecipeSuggestions(response.data.choices[0].text.trim());
+    } catch (error) {
+      console.error('Error fetching recipe suggestions:', error.message);
     }
   }
 
@@ -66,22 +99,21 @@ export default function Home() {
     updateInventory()
   }, [])
 
-useEffect(() => {
-  const filtered = inventory.filter((item) => {
-    const itemName = item?.name?.toLowerCase() || '';
-    const itemDescription = item?.description?.toLowerCase() || '';
-    const itemVendor = item?.vendor?.toLowerCase() || '';
-    return (
-      itemName.includes(searchTerm.toLowerCase()) &&
-      itemDescription.includes(descriptionFilter.toLowerCase()) &&
-      itemVendor.includes(vendorFilter.toLowerCase()) &&
-      item?.quantity >= minQuantity
-    );
-  });
-  setFilteredInventory(filtered);
-}, [searchTerm, minQuantity, vendorFilter, descriptionFilter, inventory]);
+  useEffect(() => {
+    const filtered = inventory.filter((item) => {
+      const itemName = item?.name?.toLowerCase() || '';
+      const itemDescription = item?.description?.toLowerCase() || '';
+      const itemVendor = item?.vendor?.toLowerCase() || '';
+      return (
+        itemName.includes(searchTerm.toLowerCase()) &&
+        itemDescription.includes(descriptionFilter.toLowerCase()) &&
+        itemVendor.includes(vendorFilter.toLowerCase()) &&
+        item?.quantity >= minQuantity
+      );
+    });
+    setFilteredInventory(filtered);
+  }, [searchTerm, minQuantity, vendorFilter, descriptionFilter, inventory]);
 
-  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
@@ -214,6 +246,7 @@ useEffect(() => {
         </Toolbar>
       </AppBar>
 
+      {/* Modals for Sign Up, Sign In, Add Item, and Edit Item */}
       <Modal open={openSignUpModal} onClose={handleCloseSignUp} aria-labelledby="modal-sign-up-title" aria-describedby="modal-sign-up-description">
         <Box sx={modalStyle}>
           <Typography id="modal-sign-up-title" variant="h6" component="h2" color="#00796b">
@@ -273,6 +306,7 @@ useEffect(() => {
         </Box>
       </Modal>
 
+      {/* Recipe Suggestions Section */}
       <Box display="flex" flexDirection="column" gap={2} width="100%" flexGrow={1} maxHeight="100vh" overflowY="auto">
         <Typography variant="h5" component="div" color="#00796b" sx={{ mb: 2 }}>
           Inventory Items
@@ -307,6 +341,14 @@ useEffect(() => {
               </CardContent>
             </Card>
           ))}
+        </Box>
+
+        {/* Recipe Suggestions Modal */}
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h5" component="div" color="#00796b" sx={{ mb: 2 }}>
+            Recipe Suggestions
+          </Typography>
+          <Typography>{recipeSuggestions}</Typography>
         </Box>
       </Box>
 
