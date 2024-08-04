@@ -5,7 +5,7 @@ import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Di
 import { firestore, auth } from '@/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth'
 import { collection, doc, getDocs, query, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
-import { OpenAI } from 'openai'
+import { Configuration, OpenAIApi } from 'openai';
 
 const modalStyle = {
   position: 'absolute',
@@ -28,7 +28,7 @@ const buttonStyle = {
 }
 
 // Initialize OpenAI API client
-const openai = new OpenAI({
+const configuration = new Configuration{
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: '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', // Replace with your actual API key
 
