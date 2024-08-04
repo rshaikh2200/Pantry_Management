@@ -34,6 +34,7 @@ export default function Home() {
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openSignUpModal, setOpenSignUpModal] = useState(false)
   const [openSignInModal, setOpenSignInModal] = useState(false)
+  const [openRecipeModal, setOpenRecipeModal] = useState(false)
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [description, setDescription] = useState('')
@@ -158,6 +159,8 @@ export default function Home() {
   const handleCloseSignUp = () => setOpenSignUpModal(false)
   const handleOpenSignIn = () => setOpenSignInModal(true)
   const handleCloseSignIn = () => setOpenSignInModal(false)
+  const handleOpenRecipeModal = () => setOpenRecipeModal(true)
+  const handleCloseRecipeModal = () => setOpenRecipeModal(false)
 
   const handleSignUp = async () => {
     try {
@@ -207,13 +210,14 @@ export default function Home() {
         max_tokens: 150
       }, {
         headers: {
-          'Authorization': `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`,
+          'Authorization': `Bearer YOUR_OPENAI_API_KEY`,
           'Content-Type': 'application/json'
         }
       });
 
       const suggestedRecipes = response.data.choices[0].text.trim();
       setSuggestedRecipes(suggestedRecipes);
+      handleOpenRecipeModal();
     } catch (error) {
       console.error('Error suggesting recipes:', error.message);
     }
@@ -371,21 +375,13 @@ export default function Home() {
           <Button variant="contained" color="primary" onClick={handleSignIn}>Sign In</Button>
         </Box>
       </Modal>
-      {suggestedRecipes.length > 0 && (
-        <Box
-          position="fixed"
-          bottom={20}
-          right={20}
-          bgcolor="white"
-          p={3}
-          boxShadow={3}
-          borderRadius={4}
-          maxWidth="400px"
-        >
-          <Typography variant="h6">Suggested Recipes:</Typography>
+      <Modal open={openRecipeModal} onClose={handleCloseRecipeModal}>
+        <Box sx={modalStyle}>
+          <Typography variant="h6">Suggested Recipes</Typography>
           <Typography variant="body1">{suggestedRecipes}</Typography>
+          <Button variant="contained" color="primary" onClick={handleCloseRecipeModal}>Close</Button>
         </Box>
-      )}
+      </Modal>
     </Box>
   )
 }
