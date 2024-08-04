@@ -5,7 +5,7 @@ import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Di
 import { firestore, auth } from '@/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth'
 import { collection, doc, getDocs, query, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
-import { Configuration, OpenAIApi } from 'openai';
+import { Configuration, OpenAIApi } from 'openai'
 
 const modalStyle = {
   position: 'absolute',
