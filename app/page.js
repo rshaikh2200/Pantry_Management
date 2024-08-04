@@ -210,7 +210,7 @@ export default function Home() {
         max_tokens: 150
       }, {
         headers: {
-          'Authorization': `Bearer YOUR_OPENAI_API_KEY`,
+          'Authorization': `Bearer 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',
           'Content-Type': 'application/json'
         }
       });
