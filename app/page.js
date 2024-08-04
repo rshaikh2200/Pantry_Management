@@ -59,40 +59,7 @@ export default function Home() {
       })
       setInventory(inventoryList)
       setFilteredInventory(inventoryList)
-      await fetchRecipeSuggestions(inventoryList)
-    } catch (error) {
-      console.error('Error fetching inventory:', error.message)
-    }
-  }
-
-  const fetchRecipeSuggestions = async (inventoryList) => {
-    const items = inventoryList.map(item => ({
-      name: item.name,
-      quantity: item.quantity
-    }));
-
-    const prompt = 
-      `Based on the following inventory items, generate three recipes for a dish. The output should be in JSON array and each object should contain a recipe name filed name 'name', description filed name 'description', array of step by step instructions named 'instructions'.:\n
-      ${JSON.stringify({ items })}`;
-
-    try {
-      const response = await chatModel.invoke('prompt', {
-        model: 'text-davinci-003',
-        prompt: prompt,
-        max_tokens: 150
-      }, {
-        headers: {
-          'Authorization': 'Bearer sk-proj-c_k630M85ZttidlX_AVlnuKk13913yPWIrES5BKYg_w2Gn6Rwj9-uALhIIT3BlbkFJXcU7eC_c2F1596LQyLN', // Replace with your actual API key
-          'Content-Type': 'application/json'
-        }
-      });
-
-      setRecipeSuggestions(response.data.choices[0].text.trim());
-    } catch (error) {
-      console.error('Error fetching recipe suggestions:', error.message);
-    }
-  }
-
+      
   useEffect(() => {
     updateInventory()
   }, [])
@@ -220,8 +187,7 @@ export default function Home() {
     }
   }
 
-  const handleOpenRecipeModal = () => setOpenRecipeModal(true) // Open recipe suggestions modal
-  const handleCloseRecipeModal = () => setOpenRecipeModal(false) // Close recipe suggestions modal
+
 
   return (
     <Box width="100vw" height="100vh" display="flex" flexDirection="column" alignItems="center" gap={3} p={3} bgcolor="#e0f7fa">
@@ -308,16 +274,7 @@ export default function Home() {
         </Box>
       </Modal>
 
-      {/* Recipe Suggestions Modal */}
-      <Modal open={openRecipeModal} onClose={handleCloseRecipeModal} aria-labelledby="modal-recipe-suggestions-title" aria-describedby="modal-recipe-suggestions-description">
-        <Box sx={modalStyle}>
-          <Typography id="modal-recipe-suggestions-title" variant="h6" component="h2" color="#00796b">
-            Recipe Suggestions
-          </Typography>
-          <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
-          <Typography>{recipeSuggestions}</Typography>
-        </Box>
-      </Modal>
+   
 
       <Box display="flex" flexDirection="column" gap={2} width="100%" flexGrow={1} maxHeight="100vh" overflowY="auto">
         <Typography variant="h5" component="div" color="#00796b" sx={{ mb: 2 }}>
