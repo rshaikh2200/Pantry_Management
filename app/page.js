@@ -84,7 +84,7 @@ export default function Home() {
         max_tokens: 150
       }, {
         headers: {
-          'Authorization': 'Bearer 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', // Replace with your actual API key
+          'Authorization': 'Bearer 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', // Replace with your actual API key
           'Content-Type': 'application/json'
         }
       });
