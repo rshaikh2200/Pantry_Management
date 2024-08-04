@@ -5,6 +5,7 @@ import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Di
 import { firestore, auth } from '@/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth'
 import { collection, doc, getDocs, query, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
+import axios from 'axios'
 
 const modalStyle = {
   position: 'absolute',
@@ -46,6 +47,7 @@ export default function Home() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [user, setUser] = useState(null)
+  const [suggestedRecipes, setSuggestedRecipes] = useState([])
 
   const updateInventory = async () => {
     try {
@@ -66,20 +68,20 @@ export default function Home() {
     updateInventory()
   }, [])
 
-useEffect(() => {
-  const filtered = inventory.filter((item) => {
-    const itemName = item?.name?.toLowerCase() || '';
-    const itemDescription = item?.description?.toLowerCase() || '';
-    const itemVendor = item?.vendor?.toLowerCase() || '';
-    return (
-      itemName.includes(searchTerm.toLowerCase()) &&
-      itemDescription.includes(descriptionFilter.toLowerCase()) &&
-      itemVendor.includes(vendorFilter.toLowerCase()) &&
-      item?.quantity >= minQuantity
-    );
-  });
-  setFilteredInventory(filtered);
-}, [searchTerm, minQuantity, vendorFilter, descriptionFilter, inventory]);
+  useEffect(() => {
+    const filtered = inventory.filter((item) => {
+      const itemName = item?.name?.toLowerCase() || '';
+      const itemDescription = item?.description?.toLowerCase() || '';
+      const itemVendor = item?.vendor?.toLowerCase() || '';
+      return (
+        itemName.includes(searchTerm.toLowerCase()) &&
+        itemDescription.includes(descriptionFilter.toLowerCase()) &&
+        itemVendor.includes(vendorFilter.toLowerCase()) &&
+        item?.quantity >= minQuantity
+      );
+    });
+    setFilteredInventory(filtered);
+  }, [searchTerm, minQuantity, vendorFilter, descriptionFilter, inventory]);
 
   
   useEffect(() => {
@@ -190,6 +192,33 @@ useEffect(() => {
     }
   }
 
+  const handleSuggestRecipe = async () => {
+    const inventoryItems = inventory.map(item => `${item.name} (Quantity: ${item.quantity})`).join(', ');
+
+    const prompt = `
+      Based on the following pantry items, suggest some recipes that can be prepared and estimate the time it would take to create them:
+      ${inventoryItems}
+    `;
+
+    try {
+      const response = await axios.post('https://api.openai.com/v1/completions', {
+        model: 'text-davinci-003',
+        prompt: prompt,
+        max_tokens: 150
+      }, {
+        headers: {
+          'Authorization': `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`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const suggestedRecipes = response.data.choices[0].text.trim();
+      setSuggestedRecipes(suggestedRecipes);
+    } catch (error) {
+      console.error('Error suggesting recipes:', error.message);
+    }
+  }
+
   return (
     <Box width="100vw" height="100vh" display="flex" flexDirection="column" alignItems="center" gap={3} p={3} bgcolor="#e0f7fa">
       <AppBar position="static">
@@ -210,114 +239,153 @@ useEffect(() => {
               <Button color="inherit" onClick={handleOpenSignIn}>Sign In</Button>
             </>
           )}
-          <Button color="inherit" onClick={handleOpenAdd}>Add Item</Button>
+          <Button color="inherit" onClick={handleSuggestRecipe}>Suggest Recipe</Button>
         </Toolbar>
       </AppBar>
-
-      <Modal open={openSignUpModal} onClose={handleCloseSignUp} aria-labelledby="modal-sign-up-title" aria-describedby="modal-sign-up-description">
-        <Box sx={modalStyle}>
-          <Typography id="modal-sign-up-title" variant="h6" component="h2" color="#00796b">
-            Sign Up
-          </Typography>
-          <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
-          <Stack spacing={2}>
-            <TextField label="Username" variant="outlined" fullWidth value={username} onChange={(e) => setUsername(e.target.value)} />
-            <TextField label="Email" type="email" variant="outlined" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
-            <TextField label="Password" type="password" variant="outlined" fullWidth value={password} onChange={(e) => setPassword(e.target.value)} />
-            <Button variant="contained" color="primary" sx={buttonStyle} onClick={handleSignUp}>Sign Up</Button>
-          </Stack>
-        </Box>
-      </Modal>
-
-      <Modal open={openSignInModal} onClose={handleCloseSignIn} aria-labelledby="modal-sign-in-title" aria-describedby="modal-sign-in-description">
-        <Box sx={modalStyle}>
-          <Typography id="modal-sign-in-title" variant="h6" component="h2" color="#00796b">
-            Sign In
-          </Typography>
-          <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
-          <Stack spacing={2}>
-            <TextField label="Email" type="email" variant="outlined" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
-            <TextField label="Password" type="password" variant="outlined" fullWidth value={password} onChange={(e) => setPassword(e.target.value)} />
-            <Button variant="contained" color="primary" sx={buttonStyle} onClick={handleSignIn}>Sign In</Button>
-          </Stack>
-        </Box>
-      </Modal>
-
-      <Modal open={openAddModal} onClose={handleCloseAdd} aria-labelledby="modal-add-item-title" aria-describedby="modal-add-item-description">
-        <Box sx={modalStyle}>
-          <Typography id="modal-add-item-title" variant="h6" component="h2" color="#00796b">
-            Add New Item
-          </Typography>
-          <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
-          <Stack spacing={2}>
-            <TextField label="Item Name" variant="outlined" fullWidth value={itemName} onChange={(e) => setItemName(e.target.value)} />
-            <TextField label="Quantity" type="number" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value) || 1)} />
-            <TextField label="Description" variant="outlined" fullWidth value={description} onChange={(e) => setDescription(e.target.value)} />
-            <TextField label="Vendor" variant="outlined" fullWidth value={vendor} onChange={(e) => setVendor(e.target.value)} />
-            <Button variant="contained" color="primary" sx={buttonStyle} onClick={addItem}>Add Item</Button>
-          </Stack>
-        </Box>
-      </Modal>
-
-      <Modal open={openEditModal} onClose={handleCloseEdit} aria-labelledby="modal-edit-item-title" aria-describedby="modal-edit-item-description">
-        <Box sx={modalStyle}>
-          <Typography id="modal-edit-item-title" variant="h6" component="h2" color="#00796b">
-            Edit Item
-          </Typography>
-          <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
-          <Stack spacing={2}>
-            <TextField label="Item Name" variant="outlined" fullWidth value={currentItem?.name} disabled />
-            <TextField label="Quantity" type="number" variant="outlined" fullWidth value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value) || 1)} />
-            <Button variant="contained" color="primary" sx={buttonStyle} onClick={updateItem}>Update Item</Button>
-          </Stack>
-        </Box>
-      </Modal>
-
-      <Box display="flex" flexDirection="column" gap={2} width="100%" flexGrow={1} maxHeight="100vh" overflowY="auto">
-        <Typography variant="h5" component="div" color="#00796b" sx={{ mb: 2 }}>
-          Inventory Items
-        </Typography>
-        <Stack direction="row" spacing={2}>
-          <TextField label="Search Item" variant="outlined" fullWidth value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-          <TextField label="Min Quantity" type="number" variant="outlined" value={minQuantity} onChange={(e) => setMinQuantity(parseInt(e.target.value) || 0)} />
-          <TextField label="Vendor" variant="outlined" value={vendorFilter} onChange={(e) => setVendorFilter(e.target.value)} />
-          <TextField label="Description" variant="outlined" value={descriptionFilter} onChange={(e) => setDescriptionFilter(e.target.value)} />
-        </Stack>
-
-        <Box sx={{ flexGrow: 1, overflowY: 'auto', maxHeight: '60vh' }}>
-          {filteredInventory.map((item) => (
-            <Card key={item.name} sx={{ mb: 2 }}>
-              <CardContent>
-                <Typography variant="h6" component="div">
-                  {item.name}
-                </Typography>
-                <Typography color="text.secondary">
-                  Quantity: {item.quantity}
-                </Typography>
-                <Typography color="text.secondary">
-                  Description: {item.description}
-                </Typography>
-                <Typography color="text.secondary">
-                  Vendor: {item.vendor}
-                </Typography>
-                <Stack direction="row" spacing={2} mt={2}>
-                  <Button variant="contained" color="primary" onClick={() => handleOpenEdit(item)}>Edit</Button>
-                  <Button variant="contained" color="secondary" onClick={() => removeItem(item.name)}>Remove</Button>
-                </Stack>
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
+      <Stack direction="row" gap={3} width="100%" justifyContent="center" alignItems="center">
+        <TextField
+          label="Search"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <TextField
+          label="Minimum Quantity"
+          type="number"
+          value={minQuantity}
+          onChange={(e) => setMinQuantity(parseInt(e.target.value))}
+        />
+        <TextField
+          label="Vendor"
+          value={vendorFilter}
+          onChange={(e) => setVendorFilter(e.target.value)}
+        />
+        <TextField
+          label="Description"
+          value={descriptionFilter}
+          onChange={(e) => setDescriptionFilter(e.target.value)}
+        />
+        <Button variant="contained" color="primary" onClick={handleOpenAdd}>Add Item</Button>
+      </Stack>
+      <Box
+        width="100%"
+        maxHeight="60vh"
+        overflow="auto"
+        display="flex"
+        flexDirection="column"
+        gap={2}
+        p={2}
+      >
+        {filteredInventory.map((item, index) => (
+          <Card key={index}>
+            <CardContent>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="h6">{item.name}</Typography>
+                <Typography variant="body1">Quantity: {item.quantity}</Typography>
+                <Button variant="contained" color="secondary" onClick={() => removeItem(item.name)}>Remove</Button>
+                <Button variant="contained" color="primary" onClick={() => handleOpenEdit(item)}>Edit</Button>
+              </Stack>
+              <Divider sx={{ my: 1 }} />
+              <Typography variant="body2">Description: {item.description}</Typography>
+              <Typography variant="body2">Vendor: {item.vendor}</Typography>
+            </CardContent>
+          </Card>
+        ))}
       </Box>
-
-      <Box component="footer" sx={{ width: '100%', p: 2, mt: 'auto', bgcolor: '#00796b', color: '#ffffff', display: 'flex', justifyContent: 'space-between' }}>
-        <Typography variant="body2">
-          © {new Date().getFullYear()} Property of Rizwan's Company
-        </Typography>
-        <Typography variant="body2">
-          Name: Rizwan Shaikh | Phone: (404) 980-4465 | Address: 123 Main St, Anytown, USA
-        </Typography>
-      </Box>
+      <Modal open={openAddModal} onClose={handleCloseAdd}>
+        <Box sx={modalStyle}>
+          <Typography variant="h6">Add Item</Typography>
+          <TextField
+            label="Item Name"
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
+          />
+          <TextField
+            label="Quantity"
+            type="number"
+            value={quantity}
+            onChange={(e) => setQuantity(parseInt(e.target.value))}
+          />
+          <TextField
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <TextField
+            label="Vendor"
+            value={vendor}
+            onChange={(e) => setVendor(e.target.value)}
+          />
+          <Button variant="contained" color="primary" onClick={addItem}>Add</Button>
+        </Box>
+      </Modal>
+      <Modal open={openEditModal} onClose={handleCloseEdit}>
+        <Box sx={modalStyle}>
+          <Typography variant="h6">Edit Item</Typography>
+          <TextField
+            label="Quantity"
+            type="number"
+            value={quantity}
+            onChange={(e) => setQuantity(parseInt(e.target.value))}
+          />
+          <Button variant="contained" color="primary" onClick={updateItem}>Update</Button>
+        </Box>
+      </Modal>
+      <Modal open={openSignUpModal} onClose={handleCloseSignUp}>
+        <Box sx={modalStyle}>
+          <Typography variant="h6">Sign Up</Typography>
+          <TextField
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <TextField
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button variant="contained" color="primary" onClick={handleSignUp}>Sign Up</Button>
+        </Box>
+      </Modal>
+      <Modal open={openSignInModal} onClose={handleCloseSignIn}>
+        <Box sx={modalStyle}>
+          <Typography variant="h6">Sign In</Typography>
+          <TextField
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button variant="contained" color="primary" onClick={handleSignIn}>Sign In</Button>
+        </Box>
+      </Modal>
+      {suggestedRecipes.length > 0 && (
+        <Box
+          position="fixed"
+          bottom={20}
+          right={20}
+          bgcolor="white"
+          p={3}
+          boxShadow={3}
+          borderRadius={4}
+          maxWidth="400px"
+        >
+          <Typography variant="h6">Suggested Recipes:</Typography>
+          <Typography variant="body1">{suggestedRecipes}</Typography>
+        </Box>
+      )}
     </Box>
   )
 }
