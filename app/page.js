@@ -30,11 +30,8 @@ const buttonStyle = {
 // Initialize OpenAI API client
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: 'your-openai-api-key', // Replace with your actual API key
-  defaultHeaders: {
-    'HTTP-Referer': 'your-site-url', // Optional
-    'X-Title': 'your-site-name', // Optional
-  }
+  apiKey: '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', // Replace with your actual API key
+
 })
 
 export default function Home() {
@@ -75,11 +72,6 @@ export default function Home() {
     }
   }
 
-  const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: $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,
-  
-})
   const fetchRecipeSuggestions = async (inventoryList) => {
     const items = inventoryList.map(item => ({
       name: item.name,
