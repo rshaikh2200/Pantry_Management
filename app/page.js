@@ -48,7 +48,8 @@ export default function Home() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [user, setUser] = useState(null)
-  const [recipeSuggestions, setRecipeSuggestions] = useState('')
+  const [prompt, setPrompt] = useState<string>("");
+  const [recipes, setRecipes] = useState<any[]>([])
 
   const updateInventory = async () => {
     try {
