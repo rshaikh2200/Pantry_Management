@@ -333,5 +333,9 @@ export default function Home() {
           </Stack>
         </Box>
       </Modal>
+    </Box>
+  )
+}
+
 
 
