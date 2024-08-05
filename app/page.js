@@ -6,9 +6,9 @@ import { firestore, auth } from '@/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth'
 import { collection, doc, getDocs, query, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { config } from 'dotenv';
+import * as dotenv from "dotenv";
 
-config();
+dotenv.config();
 
 const modalStyle = {
   position: 'absolute',
