@@ -37,7 +37,7 @@ export default function Home() {
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openSignUpModal, setOpenSignUpModal] = useState(false)
   const [openSignInModal, setOpenSignInModal] = useState(false)
-  const [openRecipeModal, setOpenRecipeModal] = useState(false) // Added state for recipe modal
+ 
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [description, setDescription] = useState('')
@@ -198,7 +198,7 @@ export default function Home() {
   const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
   async function getIngredients() {
-    const inventorySnapshot = await getDocs(collection(db, 'inventory'));
+    const inventorySnapshot = await getDocs(collection(fire, 'inventory'));
     const ingredients = inventorySnapshot.docs.map(doc => doc.data().name);
     return ingredients;
   }
