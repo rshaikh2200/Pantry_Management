@@ -5,7 +5,7 @@ import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Di
 import { firestore, auth } from '@/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth'
 import { collection, doc, getDocs, query, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
-import axios from 'axios';
+
 
 const modalStyle = {
   position: 'absolute',
@@ -34,7 +34,6 @@ export default function Home() {
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openSignUpModal, setOpenSignUpModal] = useState(false)
   const [openSignInModal, setOpenSignInModal] = useState(false)
-  const [openRecipeModal, setOpenRecipeModal] = useState(false) // New state for recipe suggestions modal
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [description, setDescription] = useState('')
@@ -48,7 +47,7 @@ export default function Home() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [user, setUser] = useState(null)
-  const [recipeSuggestions, setRecipeSuggestions] = useState('')
+
 
   const updateInventory = async () => {
     try {
@@ -60,39 +59,8 @@ export default function Home() {
       })
       setInventory(inventoryList)
       setFilteredInventory(inventoryList)
-      await fetchRecipeSuggestions(inventoryList)
-    } catch (error) {
-      console.error('Error fetching inventory:', error.message)
-    }
-  }
-
-  const fetchRecipeSuggestions = async (inventoryList) => {
-    const items = inventoryList.map(item => ({
-      name: item.name,
-      quantity: item.quantity
-    }));
-
-    const prompt = 
-      `Based on the following inventory items, generate three recipes for a dish. The output should be in JSON array and each object should contain a recipe name filed name 'name', description filed name 'description', array of step by step instructions named 'instructions'.:\n
-      ${JSON.stringify({ items })}`;
-
-    try {
-      const response = await chatModel.invoke('prompt', {
-        model: 'text-davinci-003',
-        prompt: prompt,
-        max_tokens: 150
-      }, {
-        headers: {
-          'Authorization': 'Bearer sk-proj-c_k630M85ZttidlX_AVlnuKk13913yPWIrES5BKYg_w2Gn6Rwj9-uALhIIT3BlbkFJXcU7eC_c2F1596LQyLN', // Replace with your actual API key
-          'Content-Type': 'application/json'
-        }
-      });
-
-      setRecipeSuggestions(response.data.choices[0].text.trim());
-    } catch (error) {
-      console.error('Error fetching recipe suggestions:', error.message);
-    }
-  }
+      
+  
 
   useEffect(() => {
     updateInventory()
