@@ -5,6 +5,10 @@ import { Box, Stack, Typography, Button, Modal, TextField, Card, CardContent, Di
 import { firestore, auth } from '@/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth'
 import { collection, doc, getDocs, query, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { config } from 'dotenv';
+
+config();
 
 const modalStyle = {
   position: 'absolute',
@@ -191,8 +195,30 @@ export default function Home() {
     }
   }
 
-  const handleOpenRecipeModal = () => setOpenRecipeModal(true)
-  const handleCloseRecipeModal = () => setOpenRecipeModal(false)
+  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+
+  async function getIngredients() {
+    const inventorySnapshot = await getDocs(collection(db, 'inventory'));
+    const ingredients = inventorySnapshot.docs.map(doc => doc.data().name);
+    return ingredients;
+  }
+
+  async function run() {
+    // The Gemini 1.5 models are versatile and work with both text-only and multimodal prompts
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    // Fetch ingredients from Firestore
+    const ingredients = await getIngredients();
+    const prompt = `Suggest a recipe using the following ingredients: ${ingredients.join(', ')}.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = await response.text();
+    console.log(text);
+  }
+
+  run();
+
 
   return (
     <Box width="100vw" height="100vh" display="flex" flexDirection="column" alignItems="center" gap={3} p={3} bgcolor="#e0f7fa">
