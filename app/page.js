@@ -37,7 +37,6 @@ export default function Home() {
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openSignUpModal, setOpenSignUpModal] = useState(false)
   const [openSignInModal, setOpenSignInModal] = useState(false)
- 
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [description, setDescription] = useState('')
@@ -51,7 +50,7 @@ export default function Home() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [user, setUser] = useState(null)
-  const [recipeSuggestions, setRecipeSuggestions] = useState('') // Added state for recipe suggestions
+  const [recipeSuggestions, setRecipeSuggestions] = useState('')
 
   const updateInventory = async () => {
     try {
@@ -198,7 +197,7 @@ export default function Home() {
   const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
   async function getIngredients() {
-    const inventorySnapshot = await getDocs(collection(fire, 'inventory'));
+    const inventorySnapshot = await getDocs(collection(firestore, 'inventory'));
     const ingredients = inventorySnapshot.docs.map(doc => doc.data().name);
     return ingredients;
   }
@@ -214,11 +213,12 @@ export default function Home() {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = await response.text();
-    console.log(text);
+    setRecipeSuggestions(text);
   }
 
-  run();
-
+  useEffect(() => {
+    run();
+  }, []);
 
   return (
     <Box width="100vw" height="100vh" display="flex" flexDirection="column" alignItems="center" gap={3} p={3} bgcolor="#e0f7fa">
@@ -241,10 +241,8 @@ export default function Home() {
             </>
           )}
           <Button color="inherit" onClick={handleOpenAdd}>Add Item</Button>
-          <Button color="inherit" onClick={handleOpenRecipeModal}>Suggest Recipe</Button>
         </Toolbar>
       </AppBar>
-
       <Modal open={openSignUpModal} onClose={handleCloseSignUp} aria-labelledby="modal-sign-up-title" aria-describedby="modal-sign-up-description">
         <Box sx={modalStyle}>
           <Typography id="modal-sign-up-title" variant="h6" component="h2" color="#00796b">
@@ -336,17 +334,4 @@ export default function Home() {
         </Box>
       </Modal>
 
-      <Modal open={openRecipeModal} onClose={handleCloseRecipeModal} aria-labelledby="modal-recipe-title" aria-describedby="modal-recipe-description">
-        <Box sx={modalStyle}>
-          <Typography id="modal-recipe-title" variant="h6" component="h2" color="#00796b">
-            Recipe Suggestions
-          </Typography>
-          <Divider sx={{ mb: 2, bgcolor: '#00796b' }} />
-          <Typography id="modal-recipe-description">
-            {recipeSuggestions}
-          </Typography>
-        </Box>
-      </Modal>
-    </Box>
-  )
-}
+
